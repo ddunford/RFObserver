@@ -116,16 +116,32 @@ audio_thread.start()
 
 ### UI Components
 
-* Frequency input (e.g. text or slider)
-* Modulation type selector (dropdown)
-* Start/Stop stream button
-* Audio player
-* Waterfall/spectrum chart
+* **Device Selector**: Dropdown to select connected SDR devices (by name/path)
+* **Frequency Input**: Text input or slider for tuning (in MHz/kHz)
+* **Modulation Type**: Dropdown for AM, FM, USB, LSB, etc.
+* **Sample Rate / Gain Controls**: Optional numeric inputs
+* **Start/Stop Stream Button**: Toggle SDR session
+* **Audio Player**: HTML5 embedded audio player
+* **Spectrum Chart**: Real-time FFT power vs frequency
+* **Waterfall Display**: Scrollable real-time frequency vs time heatmap
+* **Device Status Panel**: Shows current settings and device state
+* **Error/Log Panel**: Optional collapsible area showing command output/errors
 
-### Audio
+### Layout Concept
 
-```html
-<audio controls autoplay src="http://localhost:8000/audio"></audio>
+```
+ --------------------------------------------------------
+| Device: [dropdown]  Freq: [input] MHz  Mod: [select]  |
+| Sample Rate: [input]     Gain: [input]     [Start]    |
+ --------------------------------------------------------
+|               Spectrum Display (Plotly/D3)             |
+|--------------------------------------------------------|
+|               Waterfall Heatmap (Canvas)              |
+|--------------------------------------------------------|
+|          Audio: [ <audio autoplay controls> ]          |
+|--------------------------------------------------------|
+|  Logs / Debug Info (toggleable, scrollable terminal)   |
+ --------------------------------------------------------
 ```
 
 ### Spectrum and Waterfall Plot
@@ -151,6 +167,20 @@ audio_thread.start()
   * Maintain a rolling buffer of previous FFT slices (e.g., last 100 rows)
   * Display as a colour heatmap (freq vs time vs power)
   * Use canvas/WebGL for efficient updates
+
+### Device Discovery
+
+* Backend should run a command like `rtl_test` or `rtl_eeprom -d [index]` to enumerate connected devices
+* API: `GET /devices`
+
+```json
+[
+  { "index": 0, "name": "Generic RTL2832U #1" },
+  { "index": 1, "name": "NooElec NESDR SMArt v4" }
+]
+```
+
+* On UI load, fetch this list and let user select an active device before starting stream
 
 ## Data Format
 

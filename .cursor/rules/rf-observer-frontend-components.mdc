@@ -1,0 +1,75 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# RF Observer Frontend Components
+
+This rule outlines the key frontend components and their implementation in the RF Observer project.
+
+## Component Architecture
+
+The frontend is built with React and employs a component-based architecture with the following main sections:
+
+### Core UI Components
+
+- **Dashboard**: Main application view with control panels and visualizations
+- **DeviceSelector**: Dropdown component for selecting RTL-SDR devices
+- **FrequencyControls**: Input and validation for frequency selection
+- **GainControls**: Sliders and inputs for SDR gain settings
+- **SpectrumDisplay**: Real-time FFT visualization using Plotly.js
+- **WaterfallDisplay**: Time-series frequency heatmap visualization
+- **BurstBrowser**: Interface for viewing and managing detected signal bursts
+
+### Planned Audio Components
+
+- **AudioPlayer**: HTML5 audio player for demodulated signals
+- **ModulationSelector**: Controls for selecting modulation type (WFM, NFM, AM)
+- **VolumeControls**: Audio volume adjustment sliders
+- **AudioIndicator**: Visual indicator of audio signal strength
+
+## State Management
+
+- React Context API for application-wide state
+- Socket.io connection management through custom hooks
+- Device configuration state with persistence
+- FFT data buffering for visualization
+
+## Real-time Data Flow
+
+1. **Socket Connection**: Established on component mount
+2. **Device Selection**: Triggers subscription to device-specific FFT data
+3. **FFT Data Processing**: Throttled to maintain UI performance
+4. **Visualization Rendering**: Optimized for minimum frame drops
+5. **Burst Detection**: UI updates triggered by WebSocket events
+
+## UI Layout
+
+See the detailed layout specifications in [rf-observer-ui-design](mdc:.cursor/rules/rf-observer-ui-design.mdc).
+
+## Responsive Design
+
+- Mobile-first approach with Tailwind CSS
+- Breakpoints for different device sizes:
+  - Small: Phone (< 640px)
+  - Medium: Tablet (640px - 1024px)
+  - Large: Desktop (> 1024px)
+- Collapsible panels for limited screen real estate
+
+## Implementation Status
+
+Current components implemented:
+- ✅ Dashboard layout
+- ✅ Device selection
+- ✅ Frequency controls
+- ✅ Gain settings
+- ✅ Spectrum display
+- ✅ Waterfall visualization
+- ✅ Burst detection notifications
+
+Pending implementation:
+- ❌ Audio player
+- ❌ Modulation selector
+- ❌ Audio controls
+
+See [docs/implementation_roadmap.md](mdc:docs/implementation_roadmap.md) for the timeline of remaining component development.

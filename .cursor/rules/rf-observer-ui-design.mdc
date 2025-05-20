@@ -1,0 +1,81 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# RF Observer UI Design Specification
+
+This rule outlines the UI design requirements for the RF Observer frontend as specified in [docs/technical.md](mdc:docs/technical.md).
+
+## UI Components
+
+### Required Components
+
+* **Device Selector**: Dropdown to select connected SDR devices (by name/path)
+* **Frequency Input**: Text input or slider for tuning (in MHz/kHz)
+* **Modulation Type**: Dropdown for AM, FM, USB, LSB, etc.
+* **Sample Rate / Gain Controls**: Optional numeric inputs
+* **Start/Stop Stream Button**: Toggle SDR session
+* **Audio Player**: HTML5 embedded audio player
+* **Spectrum Chart**: Real-time FFT power vs frequency
+* **Waterfall Display**: Scrollable real-time frequency vs time heatmap
+* **Device Status Panel**: Shows current settings and device state
+* **Error/Log Panel**: Optional collapsible area showing command output/errors
+
+### Layout Design
+
+The UI should follow this general layout structure:
+
+```
+ --------------------------------------------------------
+| Device: [dropdown]  Freq: [input] MHz  Mod: [select]  |
+| Sample Rate: [input]     Gain: [input]     [Start]    |
+ --------------------------------------------------------
+|               Spectrum Display (Plotly/D3)             |
+|--------------------------------------------------------|
+|               Waterfall Heatmap (Canvas)              |
+|--------------------------------------------------------|
+|          Audio: [ <audio autoplay controls> ]          |
+|--------------------------------------------------------|
+|  Logs / Debug Info (toggleable, scrollable terminal)   |
+ --------------------------------------------------------
+```
+
+## Visualization Implementation
+
+### Spectrum Chart Requirements
+* Connect to WebSocket for real-time FFT data
+* Render power vs frequency line chart using Plotly.js
+* Update at least 5 times per second
+* Y-axis: power in dBFS
+* X-axis: frequency in MHz
+* Allow zoom/pan interaction
+
+### Waterfall Display Requirements
+* Maintain a rolling buffer of previous FFT slices (last 100 rows)
+* Display as a color heatmap (frequency vs time vs power)
+* Use canvas/WebGL for efficient updates
+* Color scale should represent signal power
+* Newest data at top or bottom (configurable)
+
+## Interactive Features
+
+* Adjustable gain and threshold controls
+* Frequency fine-tuning
+* Modulation selection (WFM, NFM, AM)
+* Audio volume control
+* Device connection status indication
+* Error notifications
+
+## Implementation Status
+
+According to [docs/technical_compliance.md](mdc:docs/technical_compliance.md):
+
+* ✅ Spectrum Chart: Implemented with Plotly.js
+* ✅ Waterfall Display: Implemented with Plotly.js
+* ✅ Device Selection: Implemented
+* ✅ Frequency Input: Implemented
+* ❌ Modulation Selector: Not implemented
+* ❌ Audio Player: Not implemented
+
+See [docs/implementation_roadmap.md](mdc:docs/implementation_roadmap.md) for the UI implementation plan.

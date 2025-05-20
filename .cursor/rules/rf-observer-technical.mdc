@@ -14,6 +14,7 @@ This rule outlines the technical stack and implementation details for RF Observe
 - **socket.io-client**: Real-time communication
 - **plotly.js/WebGL**: Visualization components
 - **Dark mode + responsive design**
+- **UI Design**: See detailed UI specifications in [rf-observer-ui-design](mdc:.cursor/rules/rf-observer-ui-design.mdc)
 
 ## Backend Components
 
