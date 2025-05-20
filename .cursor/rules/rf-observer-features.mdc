@@ -39,9 +39,19 @@ This rule outlines the key features of the RF Observer platform.
 - FFT data streaming for spectrum plotting
 - Waterfall frame updates
 
-## AI & ML Integration
+## Planned Audio Features
 
-- TensorFlow/PyTorch model integration (future)
+According to [docs/implementation_roadmap.md](mdc:docs/implementation_roadmap.md):
+- Audio streaming from rtl_fm command
+- FM demodulation parameter configuration (WFM, NFM, AM)
+- Audio transcoding pipeline using ffmpeg/SoX
+- HTML5 audio player component
+- Modulation selector UI (WFM, NFM, AM)
+- Volume controls and frequency fine-tuning
+
+## AI & ML Integration (Future)
+
+- TensorFlow/PyTorch model integration
 - Modulation classification (OOK, FSK, etc.)
 - Optional LLM assistant for signal summarization
 - Pretrained CNN support
@@ -52,3 +62,7 @@ This rule outlines the key features of the RF Observer platform.
 - Custom protocol templates
 - Exportable workspaces
 - Multi-user support (future)
+
+## Implementation Status
+
+See detailed implementation status in [docs/technical_compliance.md](mdc:docs/technical_compliance.md)

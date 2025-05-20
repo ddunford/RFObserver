@@ -21,29 +21,49 @@ This rule outlines the technical stack and implementation details for RF Observe
 - **pyrtlsdr**: SDR device integration
 - **socket.io (asyncio)**: WebSocket server
 - **numpy/scipy**: Signal processing
-- **SoapySDR**: Device abstraction layer
+- **SoapySDR**: Device abstraction layer (future)
 
 ## API Endpoints
 
-- `/start_scan`, `/stop_scan`, `/set_config`, `/device_status`
-- `/ws/events`: WebSocket endpoint for burst data
-- `/record_iq`, `/list_captures`, `/download/:id`
-- `/classify`: ML classifier endpoint
-- `/export/:format`: External tool export
+- `/api/start_scan`, `/api/stop_scan`, `/api/tune/:device_index`, `/api/devices`
+- WebSocket: FFT data, burst detection events
+- `/api/download_iq/:burst_id`, `/api/fft_data/:fft_data_id`
+- Planned: `/audio` endpoint for audio streaming
+
+## Feature Implementation Status
+
+Current status according to [docs/technical_compliance.md](mdc:docs/technical_compliance.md):
+
+- ✅ Spectrum/waterfall visualization
+- ✅ Device management
+- ✅ FFT processing & analysis
+- ✅ IQ data recording
+- ❌ Audio streaming (rtl_fm integration)
+- ❌ Modulation selection
+
+## Implementation Roadmap
+
+See [docs/implementation_roadmap.md](mdc:docs/implementation_roadmap.md) for the weekly implementation plan:
+
+1. Week 1: Audio streaming implementation
+2. Week 2: Spectrum/waterfall optimization
+3. Week 3: Device management enhancements
+4. Week 4: Signal analysis features
+5. Week 5: Documentation and testing
 
 ## Deployment
 
 - **Docker**: Containerized services
 - **nginx**: Optional reverse proxy
-- **SQLite/PostgreSQL**: Metadata storage
+- **PostgreSQL**: Metadata storage
 - **File system**: IQ data storage
 
 ## Hardware Support
 
-- RTL-SDR
-- HackRF One
-- HackRF H4M
-- LimeSDR Mini
+- RTL-SDR (currently supported)
+- HackRF One (planned)
+- HackRF H4M (planned)
+- LimeSDR Mini (planned)
 
 ## Development Timeline
 

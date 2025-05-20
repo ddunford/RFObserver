@@ -11,73 +11,96 @@ This rule outlines the Docker implementation for RF Observer.
 
 - **Frontend**: React application container
 - **Backend**: Python FastAPI container with SDR libraries
-- **Database**: PostgreSQL/SQLite container (configurable)
-- **Reverse Proxy**: Optional nginx container for SSL termination
+- **Database**: PostgreSQL container
+- **Reverse Proxy**: nginx container for routing and SSL termination
 
-## Docker Compose v2 Structure
+## Docker Compose Structure
 
 ```yaml
 # Main services structure
 services:
   frontend:
-    build: ./frontend
+    container_name: rf-observer-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "3000:80"
+      - "4444:3000"
     depends_on:
       - backend
-    volumes:
-      - frontend_build:/app/build
+    networks:
+      - rf_network
 
   backend:
-    build: ./backend
+    container_name: rf-observer-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     privileged: true  # Required for USB device access
     ports:
-      - "8000:8000"
+      - "7001:7001"  # API port
+      - "7002:7002"  # WebSocket port
     volumes:
+      - ./backend:/app
       - iq_data:/app/data
       - /dev/bus/usb:/dev/bus/usb  # SDR device passthrough
+    devices:
+      - /dev/bus/usb
     depends_on:
       - database
+    networks:
+      - rf_network
 
   database:
+    container_name: rf-observer-db
     image: postgres:14
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rfobserver}
+      POSTGRES_USER: ${DB_USER:-rfobserver}
+      POSTGRES_DB: ${DB_NAME:-rfobserver}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - rf_network
 
   nginx:
+    container_name: rf-observer-nginx
     image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/conf:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "7777:80"
+      - "9999:443"
     depends_on:
       - frontend
       - backend
+    networks:
+      - rf_network
 ```
+
+The complete Docker configuration is in [docker-compose.yml](mdc:docker-compose.yml), [docker-compose.dev.yml](mdc:docker-compose.dev.yml), and [docker-compose.prod.yml](mdc:docker-compose.prod.yml).
 
 ## Device Access
 
 - Uses privileged mode for SDR device access
 - Maps USB bus to allow hardware detection
-- Configurable udev rules for device permissions
+- Additional capabilities: SYS_ADMIN, SYS_RAWIO
+- Direct device access through `/dev/bus/usb` and `/dev/rtl_sdr`
 
 ## Volume Management
 
-- Persistent storage for IQ data capture files
+- Persistent storage for IQ data capture files using Docker volumes
 - Database volume for metadata storage
-- Configuration files volume for settings persistence
+- Source code volumes for development
 
 ## Development vs Production
 
 - Development profile with hot-reloading
 - Production profile with optimized builds
-- Testing profile with mock SDR devices
+- Separate Dockerfile.dev for development
 
 ## Deployment Commands
 
@@ -91,12 +114,12 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 # Access logs
 docker compose logs -f backend
 
-# Shell access
-docker compose exec backend /bin/bash
+# Restart development environment 
+./restart-dev.sh
 ```
 
 ## Hardware Considerations
 
 - SDR device detection through USB passthrough
-- Resource allocation for FFT processing
-- Network configuration for WebSocket performance
+- Docker privileged mode required for hardware access
+- Environment variables for RTL-SDR debugging and configuration

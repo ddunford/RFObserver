@@ -38,3 +38,14 @@ For development and testing purposes:
 ## Documentation
 
 Implementation notes and diagrams should reflect the use of real hardware throughout the system. Any testing procedures must document how real data is being used, even in automated testing environments.
+
+## Current Implementation Status
+
+The current implementation follows this policy with:
+
+- Direct pyrtlsdr library access for real hardware
+- USB device passthrough in Docker configuration 
+- Physical device detection and enumeration
+- Strict error handling for device connection issues
+
+See [docs/technical_compliance.md](mdc:docs/technical_compliance.md) for detailed implementation status.
