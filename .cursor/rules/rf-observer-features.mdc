@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# RF Observer Feature Guide
+
+This rule outlines the key features of the RF Observer platform.
+
+## Signal Detection & Analysis
+
+- Configurable frequency range scanning
+- Real-time FFT and dBFS detection
+- Signal threshold and burst duration settings
+- Automatic logging with timestamp, frequency, and power data
+- Burst clustering by frequency and periodicity
+
+## IQ Capabilities
+
+- Automatic IQ recording of detected signal bursts
+- Manual recording controls via UI
+- Tagging and metadata storage
+- Export formats: `.bin`, `.wav`, `.sigmf`, `.json`
+- Signal replay (future HackRF TX support)
+
+## Visualization
+
+- Real-time FFT visualization
+- Waterfall displays (WebGL-based)
+- Spectrogram viewer
+- Power-over-time analysis
+- Dashboard widgets for frequency usage
+
+## WebSocket Data Streaming
+
+- Live push of detected bursts
+- Device health monitoring
+- IQ status updates
+- FFT data streaming for spectrum plotting
+- Waterfall frame updates
+
+## AI & ML Integration
+
+- TensorFlow/PyTorch model integration (future)
+- Modulation classification (OOK, FSK, etc.)
+- Optional LLM assistant for signal summarization
+- Pretrained CNN support
+
+## User Workspace
+
+- Signal tagging and annotation
+- Custom protocol templates
+- Exportable workspaces
+- Multi-user support (future)

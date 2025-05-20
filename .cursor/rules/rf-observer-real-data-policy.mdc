@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# CRITICAL: Real Data Policy for RF Observer
+
+## ⚠️ HIGH PRIORITY POLICY
+
+**RF Observer must always use REAL DATA from ACTUAL HARDWARE.**
+
+Simulation and mock services are strictly prohibited in this project. This policy applies without exception across all components of the system.
+
+## Implementation Requirements
+
+1. All SDR interfaces must connect to and use data from physically connected hardware
+2. No simulated signal generation is permitted
+3. No hardcoded/static device listings
+4. FFT processing must be performed on actual RF samples
+5. Waterfall displays must show real-time signal data from physical devices
+6. Burst detection must operate on genuine signal captures
+
+## Technical Implementation
+
+- Use pyrtlsdr and SoapySDR to directly access hardware
+- Implement proper device enumeration using USB interfaces
+- Process actual IQ samples for visualization
+- Capture real RF bursts for analysis
+- Connect to physical SDR hardware for all signal processing
+
+## Testing Considerations
+
+For development and testing purposes:
+- Maintain a collection of pre-recorded IQ files from real hardware
+- Use replay mechanisms that use these real recordings
+- Never generate artificial data
+
+## Documentation
+
+Implementation notes and diagrams should reflect the use of real hardware throughout the system. Any testing procedures must document how real data is being used, even in automated testing environments.

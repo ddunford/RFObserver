@@ -1,0 +1,20 @@
+# RTL-SDR device udev rules
+# Place this file in /etc/udev/rules.d/
+
+# RTL2832U devices (common RTL-SDR dongles)
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", MODE="0666", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832", MODE="0666", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2837", MODE="0666", GROUP="plugdev"
+
+# HackRF One
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6089", MODE="0666", GROUP="plugdev"
+
+# Create device symlinks 
+KERNEL=="rtl_sdr*", MODE="0666", GROUP="plugdev"
+KERNEL=="rtl_fm", SYMLINK+="rtl_fm", MODE="0666", GROUP="plugdev"
+KERNEL=="rtl_tcp", SYMLINK+="rtl_tcp", MODE="0666", GROUP="plugdev"
+KERNEL=="rtl_test", SYMLINK+="rtl_test", MODE="0666", GROUP="plugdev"
+
+# After installing, run:
+#  sudo udevadm control --reload-rules
+#  sudo udevadm trigger 

@@ -1,0 +1,102 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# RF Observer Docker Setup
+
+This rule outlines the Docker implementation for RF Observer.
+
+## Container Architecture
+
+- **Frontend**: React application container
+- **Backend**: Python FastAPI container with SDR libraries
+- **Database**: PostgreSQL/SQLite container (configurable)
+- **Reverse Proxy**: Optional nginx container for SSL termination
+
+## Docker Compose v2 Structure
+
+```yaml
+# Main services structure
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    volumes:
+      - frontend_build:/app/build
+
+  backend:
+    build: ./backend
+    privileged: true  # Required for USB device access
+    ports:
+      - "8000:8000"
+    volumes:
+      - iq_data:/app/data
+      - /dev/bus/usb:/dev/bus/usb  # SDR device passthrough
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+```
+
+## Device Access
+
+- Uses privileged mode for SDR device access
+- Maps USB bus to allow hardware detection
+- Configurable udev rules for device permissions
+
+## Volume Management
+
+- Persistent storage for IQ data capture files
+- Database volume for metadata storage
+- Configuration files volume for settings persistence
+
+## Development vs Production
+
+- Development profile with hot-reloading
+- Production profile with optimized builds
+- Testing profile with mock SDR devices
+
+## Deployment Commands
+
+```bash
+# Development startup
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Production startup
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Access logs
+docker compose logs -f backend
+
+# Shell access
+docker compose exec backend /bin/bash
+```
+
+## Hardware Considerations
+
+- SDR device detection through USB passthrough
+- Resource allocation for FFT processing
+- Network configuration for WebSocket performance

@@ -1,0 +1,62 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "4444:3000"
+    depends_on:
+      - backend
+    volumes:
+      - frontend_build:/app/build
+
+  backend:
+    build: ./backend
+    privileged: true  # Required for USB device access
+    # When using host network mode, port mapping is ignored
+    ports:
+      - "7001:8000"
+    volumes:
+      - iq_data:/app/data
+      - /dev/bus/usb:/dev/bus/usb  # SDR device passthrough
+      - /dev/rtl_sdr:/dev/rtl_sdr  # Direct SDR device node if available
+    devices:
+      - /dev/bus/usb
+    environment:
+      - LIBRTLSDR_DEBUG=1
+      - PYTHONUNBUFFERED=1
+      - LD_LIBRARY_PATH=/usr/local/lib:/usr/lib
+    depends_on:
+      - database
+    # Add host network mode for better USB access
+    # network_mode: "host"
+    # Add extra privileges for USB access
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RAWIO
+
+  database:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rfobserver}
+      POSTGRES_USER: ${DB_USER:-rfobserver}
+      POSTGRES_DB: ${DB_NAME:-rfobserver}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "6666:5432"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "7777:80"
+      - "9999:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  frontend_build:
+  iq_data:
+  db_data: 

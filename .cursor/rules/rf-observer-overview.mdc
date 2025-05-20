@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# RF Observer Project Overview
+
+RF Observer is a modular, web-based RF scanning, signal detection, and protocol analysis platform using SDR devices.
+
+## Architecture
+
+- **Frontend**: React + Tailwind CSS + socket.io-client + plotly.js
+- **Backend**: FastAPI (Python) + pyrtlsdr + socket.io (asyncio) + numpy/scipy
+- **Infrastructure**: Docker containers with optional nginx reverse proxy
+- **Storage**: File-based storage for IQ files + SQLite/PostgreSQL for metadata
+- **Hardware**: RTL-SDR, HackRF One, HackRF H4M, LimeSDR Mini (via SoapySDR bridge)
+
+## Core Components
+
+### Device Support
+- Multiple SDR device support (RTL-SDR, HackRF, etc.)
+- Concurrent device operation with role assignment
+- Device status monitoring and management
+
+### Signal Processing
+- Frequency scanning with threshold detection
+- Real-time FFT analysis and burst detection
+- IQ recording and playback capabilities
+
+### User Interface
+- React-based web interface with Tailwind styling
+- Live spectrum and waterfall displays
+- Signal event logging and visualization
+- Burst browser with tagging and metadata
+
+### API Layer
+- FastAPI-based REST endpoints
+- WebSocket real-time communication
+- Export capabilities to external tools
+
+### ML Integration (Future)
+- Signal classification and modulation detection
+- Protocol analysis and decoding workflows
+
+## Documentation
+- Product requirements: [docs/PRD.md](mdc:docs/PRD.md)

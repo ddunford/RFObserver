@@ -1,0 +1,53 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "4444:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:7001
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=4444
+    stdin_open: true  # Needed for React dev server interactive mode
+    tty: true  # Needed for React dev server interactive mode
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+    ports:
+      - "7001:8000"
+    environment:
+      - DEBUG=1
+      - DEVELOPMENT=1
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://rfobserver:rfobserver@database:5432/rfobserver
+      - LIBRTLSDR_DEBUG=1  # Enable RTL-SDR library debugging
+    # Privileged mode needed for hardware access
+    privileged: true
+    # Map USB devices for RTL-SDR access
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    # Add capabilities for hardware access
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RAWIO
+    # Override the host network mode from main compose file
+    network_mode: 'bridge'
+
+  database:
+    ports:
+      - "6666:5432"
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+
+  nginx:
+    volumes:
+      - ./nginx/conf/dev.conf:/etc/nginx/conf.d/default.conf 

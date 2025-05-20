@@ -1,0 +1,57 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# RF Observer Technical Guide
+
+This rule outlines the technical stack and implementation details for RF Observer.
+
+## Frontend Technologies
+
+- **React**: UI framework
+- **Tailwind CSS**: Styling
+- **socket.io-client**: Real-time communication
+- **plotly.js/WebGL**: Visualization components
+- **Dark mode + responsive design**
+
+## Backend Components
+
+- **FastAPI**: Python-based API framework
+- **pyrtlsdr**: SDR device integration
+- **socket.io (asyncio)**: WebSocket server
+- **numpy/scipy**: Signal processing
+- **SoapySDR**: Device abstraction layer
+
+## API Endpoints
+
+- `/start_scan`, `/stop_scan`, `/set_config`, `/device_status`
+- `/ws/events`: WebSocket endpoint for burst data
+- `/record_iq`, `/list_captures`, `/download/:id`
+- `/classify`: ML classifier endpoint
+- `/export/:format`: External tool export
+
+## Deployment
+
+- **Docker**: Containerized services
+- **nginx**: Optional reverse proxy
+- **SQLite/PostgreSQL**: Metadata storage
+- **File system**: IQ data storage
+
+## Hardware Support
+
+- RTL-SDR
+- HackRF One
+- HackRF H4M
+- LimeSDR Mini
+
+## Development Timeline
+
+- Initial SDR scan & burst detect backend (Week 1)
+- WebSocket + React UI integration (Week 2)
+- IQ capture, logging, and download support (Week 3)
+- Spectrogram viewer (Week 4)
+- Multi-device support (Week 5)
+- Export to URH / Inspectrum format (Week 6)
+- Signal tagging + burst history UI (Week 7)
+- ML classifier proof-of-concept (Week 8)
