@@ -1,13 +1,11 @@
 #!/bin/bash
 # Restart the RF Observer development environment
 
-# Stop running containers
-echo "Stopping running containers..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+echo "Stopping any running containers..."
+docker compose down
 
-# Build and start containers
-echo "Starting development environment..."
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+echo "Rebuilding containers with latest code..."
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build
 
-# To run in background, use:
-# docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d 
+echo "Starting containers in development mode..."
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d

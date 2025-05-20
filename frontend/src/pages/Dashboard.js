@@ -4,8 +4,8 @@ import axios from 'axios';
 import Plot from 'react-plotly.js';
 import io from 'socket.io-client';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:7000';
-const SOCKET_URL = process.env.REACT_APP_API_URL || 'http://localhost:7000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:7001';
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:7002';
 
 // Common frequency ranges for quick tuning
 const FREQUENCY_PRESETS = [
@@ -58,7 +58,7 @@ function Dashboard({ bursts }) {
   // Set up Socket.IO connection
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,
