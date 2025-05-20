@@ -11,6 +11,7 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_API_URL=http://localhost:7001
+      - REACT_APP_SOCKET_URL=http://localhost:7002
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=4444
     stdin_open: true  # Needed for React dev server interactive mode
@@ -23,7 +24,8 @@ services:
     volumes:
       - ./backend:/app
     ports:
-      - "7001:8000"
+      - "7001:7001"  # API port
+      - "7002:7002"  # WebSocket port
     environment:
       - DEBUG=1
       - DEVELOPMENT=1
@@ -40,7 +42,6 @@ services:
       - SYS_ADMIN
       - SYS_RAWIO
     # Override the host network mode from main compose file
-    network_mode: 'bridge'
 
   database:
     ports:

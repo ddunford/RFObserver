@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import io from 'socket.io-client';
+import socket from './utils/socketio_client';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -12,11 +12,8 @@ import Settings from './pages/Settings';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 
-// Set up the socket connection
-const SOCKET_URL = process.env.REACT_APP_API_URL || 'http://localhost:7000';
-const socket = io(SOCKET_URL, {
-  path: '/ws/socket.io'
-});
+// Set up API URL
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:7001';
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -66,7 +63,7 @@ function App() {
   }, [darkMode]);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className={`flex h-screen ${darkMode ? 'dark bg-dark-bg text-white' : 'bg-gray-50 text-gray-900'}`}>
         <Sidebar darkMode={darkMode} socketConnected={socketConnected} />
         

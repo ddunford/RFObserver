@@ -2,86 +2,43 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies including SDR libraries
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
+    cmake \
+    git \
     libusb-1.0-0-dev \
     pkg-config \
     usbutils \
-    cmake \
-    git \
-    swig \
-    python3-dev \
-    librtlsdr-dev \
-    rtl-sdr \
-    libasound2-dev \
-    libfftw3-dev \
-    # Add support for additional SDR hardware
-    libhackrf-dev \
-    hackrf \
-    # Additional tools for debugging and hardware access
-    udev \
-    lsof \
-    net-tools \
-    strace \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install SoapySDR from source for broader hardware support
-RUN git clone https://github.com/pothosware/SoapySDR.git && \
-    cd SoapySDR && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-    make -j4 && \
-    make install && \
-    cd ../.. && \
-    rm -rf SoapySDR && \
-    ldconfig
+# Install RTL-SDR from source for better support
+RUN git clone https://github.com/osmocom/rtl-sdr.git \
+    && cd rtl-sdr \
+    && mkdir build \
+    && cd build \
+    && cmake ../ -DINSTALL_UDEV_RULES=ON \
+    && make \
+    && make install \
+    && ldconfig \
+    && cd /app \
+    && rm -rf rtl-sdr
 
-# Install RTL-SDR support for SoapySDR
-RUN git clone https://github.com/pothosware/SoapyRTLSDR.git && \
-    cd SoapyRTLSDR && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-    make -j4 && \
-    make install && \
-    cd ../.. && \
-    rm -rf SoapyRTLSDR && \
-    ldconfig
+# Copy requirements first to leverage Docker caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Create directory for udev rules if it doesn't exist
-RUN mkdir -p /etc/udev/rules.d/
+# Copy the rest of the application
+COPY . .
 
-# Create comprehensive udev rules for various SDR devices
-RUN echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", MODE="0666", GROUP="plugdev"' > /etc/udev/rules.d/rtl-sdr.rules && \
-    echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="6089", MODE="0666", GROUP="plugdev"' > /etc/udev/rules.d/hackrf.rules && \
-    echo 'KERNEL=="rtl_sdr*", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/rtl-sdr.rules && \
-    # Add common RTL-SDR dongles
-    echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/rtl-sdr.rules && \
-    echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2837", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/rtl-sdr.rules && \
-    # Add alternative device files 
-    echo 'KERNEL=="rtl_sdr", SYMLINK+="rtl_sdr", MODE="0666"' >> /etc/udev/rules.d/rtl-sdr.rules && \
-    echo 'KERNEL=="rtl_fm", SYMLINK+="rtl_fm", MODE="0666"' >> /etc/udev/rules.d/rtl-sdr.rules
+# Make start script executable
+RUN chmod +x start.sh
 
-# Install Python dependencies
-COPY requirements.dev.txt .
-RUN pip install --no-cache-dir -r requirements.dev.txt
-
-# Create necessary directories
+# Create data directory for IQ samples
 RUN mkdir -p /app/data
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV DEBUG=1
-ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/lib
-ENV PYTHONPATH=/app
-ENV LIBRTLSDR_DEBUG=1
-
-# Expose API port
+# Expose port
 EXPOSE 7001
 
-# Start development server with hot reload
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7001", "--reload"] 
+# Run both servers using the start script
+CMD ["./start.sh"] 

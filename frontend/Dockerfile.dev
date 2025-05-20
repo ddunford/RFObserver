@@ -1,18 +1,24 @@
-FROM node:18-alpine
+FROM node:16-alpine
 
 WORKDIR /app
 
 # Install dependencies
-COPY package.json package-lock.json* ./
+COPY package.json ./
+# Add package-lock.json if it exists
+COPY package-lock.json* ./
 RUN npm install
 
 # Copy the rest of the code
 COPY . .
 
+# Fix permissions for node_modules
+RUN mkdir -p /app/node_modules/.cache && chmod -R 777 /app/node_modules/.cache
+
 # Set environment variables
 ENV NODE_ENV=development
 ENV PORT=3000
-ENV WDS_SOCKET_PORT=4444
+ENV WDS_SOCKET_PORT=0
+ENV CHOKIDAR_USEPOLLING=true
 
 # Expose port
 EXPOSE 3000

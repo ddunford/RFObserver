@@ -1,20 +1,37 @@
+version: '3'
+
 services:
   frontend:
-    build: ./frontend
+    container_name: rf-observer-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
       - "4444:3000"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
     depends_on:
       - backend
-    volumes:
-      - frontend_build:/app/build
+    networks:
+      - rf_network
+    restart: unless-stopped
 
   backend:
-    build: ./backend
+    container_name: rf-observer-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     privileged: true  # Required for USB device access
-    # When using host network mode, port mapping is ignored
     ports:
-      - "7001:8000"
+      - "7001:7001"  # API port
+      - "7002:7002"  # WebSocket port
     volumes:
+      - ./backend:/app
       - iq_data:/app/data
       - /dev/bus/usb:/dev/bus/usb  # SDR device passthrough
       - /dev/rtl_sdr:/dev/rtl_sdr  # Direct SDR device node if available
@@ -24,39 +41,51 @@ services:
       - LIBRTLSDR_DEBUG=1
       - PYTHONUNBUFFERED=1
       - LD_LIBRARY_PATH=/usr/local/lib:/usr/lib
+      - CORS_ORIGINS=http://localhost:4444,http://localhost:3000,http://frontend:3000,http://localhost
     depends_on:
       - database
-    # Add host network mode for better USB access
-    # network_mode: "host"
     # Add extra privileges for USB access
     cap_add:
       - SYS_ADMIN
       - SYS_RAWIO
+    networks:
+      - rf_network
+    restart: unless-stopped
 
   database:
+    container_name: rf-observer-db
     image: postgres:14
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-rfobserver}
       POSTGRES_USER: ${DB_USER:-rfobserver}
       POSTGRES_DB: ${DB_NAME:-rfobserver}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "6666:5432"
+    networks:
+      - rf_network
+    restart: unless-stopped
 
   nginx:
+    container_name: rf-observer-nginx
     image: nginx:alpine
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/html:/usr/share/nginx/html
     ports:
       - "7777:80"
       - "9999:443"
-    volumes:
-      - ./nginx/conf:/etc/nginx/conf.d
-      - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - frontend
       - backend
+    networks:
+      - rf_network
+    restart: unless-stopped
 
 volumes:
-  frontend_build:
   iq_data:
-  db_data: 
+
+networks:
+  rf_network:
+    driver: bridge 
