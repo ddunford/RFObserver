@@ -1,53 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
+import { deviceApi } from '../utils/api';
 
 function BurstAnalyzer({ bursts }) {
   const [selectedBurst, setSelectedBurst] = useState(null);
-
-  // Function to generate simulated waveform data for a burst
-  const generateWaveformData = (burst) => {
-    if (!burst) return { x: [], y: [] };
-    
-    const samples = Math.floor(burst.duration * 1000); // Number of samples based on duration
-    const x = Array.from({ length: samples }, (_, i) => i / 1000); // Time in seconds
-    
-    // Generate some simulated waveform data
-    const y = Array.from({ length: samples }, (_, i) => {
-      // Create some base noise
-      let value = (Math.random() - 0.5) * 0.2;
-      
-      // Add simulated signal
-      const frequency = 10; // Hz
-      const amplitude = 0.8;
-      value += amplitude * Math.sin(2 * Math.PI * frequency * (i / 1000));
-      
-      // Add some amplitude variation
-      const envelope = Math.min(1, Math.min(i, samples - i) / (samples * 0.2));
-      return value * envelope;
-    });
-    
-    return { x, y };
-  };
-
-  // Generate simulated FFT data for a burst
-  const generateFFTData = (burst) => {
-    if (!burst) return { x: [], y: [] };
-    
-    const bins = 512;
-    const x = Array.from({ length: bins }, (_, i) => burst.frequency - (burst.bandwidth/2) + (i * burst.bandwidth / bins));
-    
-    // Generate simulated FFT data with a peak at the center frequency
-    const y = Array.from({ length: bins }, (_, i) => {
-      const distanceFromCenter = Math.abs(i - bins/2) / (bins/2);
-      return -100 + (80 * Math.pow(1 - distanceFromCenter, 2)) + (Math.random() * 5);
-    });
-    
-    return { x, y };
-  };
+  const [fftData, setFftData] = useState({ x: [], y: [] });
+  const [waveformData, setWaveformData] = useState({ x: [], y: [] });
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handler for selecting a burst
-  const handleBurstSelect = (burst) => {
+  const handleBurstSelect = async (burst) => {
     setSelectedBurst(burst);
+    
+    if (burst && burst.id) {
+      setIsLoading(true);
+      
+      try {
+        // Request the actual FFT data for this burst if it exists
+        if (burst.fft_data_id) {
+          const fftResponse = await deviceApi.getFftData(burst.fft_data_id);
+          if (fftResponse.data && fftResponse.data.frequencies && fftResponse.data.power) {
+            setFftData({
+              x: fftResponse.data.frequencies,
+              y: fftResponse.data.power
+            });
+          }
+        }
+        
+        // Request the IQ data for this burst if it exists
+        if (burst.iq_file) {
+          const iqResponse = await deviceApi.getIqPreview(burst.id);
+          if (iqResponse.data && iqResponse.data.time && iqResponse.data.amplitude) {
+            setWaveformData({
+              x: iqResponse.data.time,
+              y: iqResponse.data.amplitude
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching burst data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
   };
 
   // Format frequency display
@@ -136,6 +131,7 @@ function BurstAnalyzer({ bursts }) {
                   <button 
                     className="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                     disabled={!selectedBurst.iq_file}
+                    onClick={() => window.location.href = deviceApi.getIqDownloadUrl(selectedBurst.id)}
                   >
                     Download IQ
                   </button>
@@ -149,38 +145,48 @@ function BurstAnalyzer({ bursts }) {
               <div className="bg-white dark:bg-darker-bg rounded-lg shadow-md p-4">
                 <h2 className="text-lg font-semibold mb-4">Frequency Spectrum</h2>
                 <div className="h-64">
-                  <Plot
-                    data={[
-                      {
-                        x: generateFFTData(selectedBurst).x,
-                        y: generateFFTData(selectedBurst).y,
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: { color: '#007aff' },
-                      },
-                    ]}
-                    layout={{
-                      autosize: true,
-                      margin: { l: 50, r: 20, t: 20, b: 50 },
-                      xaxis: { 
-                        title: 'Frequency (Hz)',
-                        gridcolor: '#444',
-                      },
-                      yaxis: { 
-                        title: 'Power (dBFS)', 
-                        range: [-120, -20],
-                        gridcolor: '#444'
-                      },
-                      font: {
-                        color: '#ddd'
-                      },
-                      paper_bgcolor: 'rgba(0,0,0,0)',
-                      plot_bgcolor: 'rgba(0,0,0,0)'
-                    }}
-                    useResizeHandler={true}
-                    style={{ width: '100%', height: '100%' }}
-                    config={{ responsive: true, displayModeBar: false }}
-                  />
+                  {isLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <p>Loading data...</p>
+                    </div>
+                  ) : fftData.x.length > 0 ? (
+                    <Plot
+                      data={[
+                        {
+                          x: fftData.x,
+                          y: fftData.y,
+                          type: 'scatter',
+                          mode: 'lines',
+                          line: { color: '#007aff' },
+                        },
+                      ]}
+                      layout={{
+                        autosize: true,
+                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                        xaxis: { 
+                          title: 'Frequency (Hz)',
+                          gridcolor: '#444',
+                        },
+                        yaxis: { 
+                          title: 'Power (dBFS)', 
+                          range: [-120, -20],
+                          gridcolor: '#444'
+                        },
+                        font: {
+                          color: '#ddd'
+                        },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)'
+                      }}
+                      useResizeHandler={true}
+                      style={{ width: '100%', height: '100%' }}
+                      config={{ responsive: true, displayModeBar: false }}
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-400">
+                      <p>FFT data not available for this burst</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -188,38 +194,48 @@ function BurstAnalyzer({ bursts }) {
               <div className="bg-white dark:bg-darker-bg rounded-lg shadow-md p-4">
                 <h2 className="text-lg font-semibold mb-4">Time Domain</h2>
                 <div className="h-64">
-                  <Plot
-                    data={[
-                      {
-                        x: generateWaveformData(selectedBurst).x,
-                        y: generateWaveformData(selectedBurst).y,
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: { color: '#34c759' },
-                      },
-                    ]}
-                    layout={{
-                      autosize: true,
-                      margin: { l: 50, r: 20, t: 20, b: 50 },
-                      xaxis: { 
-                        title: 'Time (s)',
-                        gridcolor: '#444'
-                      },
-                      yaxis: { 
-                        title: 'Amplitude', 
-                        range: [-1, 1],
-                        gridcolor: '#444'
-                      },
-                      font: {
-                        color: '#ddd'
-                      },
-                      paper_bgcolor: 'rgba(0,0,0,0)',
-                      plot_bgcolor: 'rgba(0,0,0,0)'
-                    }}
-                    useResizeHandler={true}
-                    style={{ width: '100%', height: '100%' }}
-                    config={{ responsive: true, displayModeBar: false }}
-                  />
+                  {isLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                      <p>Loading data...</p>
+                    </div>
+                  ) : waveformData.x.length > 0 ? (
+                    <Plot
+                      data={[
+                        {
+                          x: waveformData.x,
+                          y: waveformData.y,
+                          type: 'scatter',
+                          mode: 'lines',
+                          line: { color: '#34c759' },
+                        },
+                      ]}
+                      layout={{
+                        autosize: true,
+                        margin: { l: 50, r: 20, t: 20, b: 50 },
+                        xaxis: { 
+                          title: 'Time (s)',
+                          gridcolor: '#444'
+                        },
+                        yaxis: { 
+                          title: 'Amplitude', 
+                          range: [-1, 1],
+                          gridcolor: '#444'
+                        },
+                        font: {
+                          color: '#ddd'
+                        },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        plot_bgcolor: 'rgba(0,0,0,0)'
+                      }}
+                      useResizeHandler={true}
+                      style={{ width: '100%', height: '100%' }}
+                      config={{ responsive: true, displayModeBar: false }}
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-400">
+                      <p>Waveform data not available for this burst</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -44,3 +44,7 @@ RF Observer is a modular, web-based RF scanning, signal detection, and protocol 
 
 ## Documentation
 - Product requirements: [docs/PRD.md](mdc:docs/PRD.md)
+- Technical specification: [docs/technical.md](mdc:docs/technical.md)
+- Technical compliance report: [docs/technical_compliance.md](mdc:docs/technical_compliance.md)
+- Implementation roadmap: [docs/implementation_roadmap.md](mdc:docs/implementation_roadmap.md)
+- Comprehensive TODO list: [docs/todo.md](mdc:docs/todo.md)
